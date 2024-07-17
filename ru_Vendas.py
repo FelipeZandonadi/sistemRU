@@ -6,40 +6,24 @@ import time
 
 # Tipos compostos (Dados) -------------------------------------------------------------------------------------------
 
-@dataclass
-class quantidadeCliente:
-    '''Aglomera em um só lugar a quantidade de tickets vendidos, que é distribuido pelo tipo de cliente.
-    >>> meusClientes: quantidadeCliente = quantidadeCliente(12,4,2,4,1)
-    '''
-    alu: int = 0
-    ser: int = 0
-    se3: int = 0
-    doc: int = 0
-    ext: int = 0
+class tipoCliente(Enum):
+    ALU = auto()
+    SER = auto()
+    SE3 = auto()
+    DOC = auto()
+    EXT = auto()
 
 @dataclass 
-class quantidadePagamento:
-    '''Aglomera em um só lugar o montante do valor vendido, que é distribuida pela forma de pagamento.
-    >>> pagamentos: quantidadePagamento = quantidadePagamento(23,72,19)
-    '''
-    pix: int = 0
-    car: int = 0 
-    din: int = 0
+class tipoPagamento(Enum):
+    PIX = auto()
+    CAR = auto() 
+    DIN = auto()
 
 @dataclass
-class dados:
-    '''Aglomera em uma só base de dados, a quantidade de tickets vendidos, o montante do valor vendido, a quantidade 
-    de tickets vendido por tipo de cliente que é atribuido à uma variável do tipo quantidadeCliente e armazena a 
-    quantidade do montante do valor vendido por formas de pagamento que é atribuido à uma variável do tipo 
-    quantidadePagamento.
-    >>> meusClientes: quantidadeCliente = quantidadeCliente(12,4,2,4,1)
-    >>> pagamentos: quantidadePagamento = quantidadePagamento(23,72,19)
-    >>> meusDados: dados = dados(pagamentos, meusClientes, 23, 114)
-    '''
-    total_pagamentos: quantidadePagamento = quantidadePagamento
-    total_cliente: quantidadeCliente = quantidadeCliente
-    total_ticket: int  = 0
-    total_valorVendido: int = 0
+class vendas:
+    cliente: tipoCliente 
+    pagamento: tipoPagamento
+    tickets: int
 
 
 # Funções de uso geral ----------------------------------------------------------------------------------------------
@@ -100,7 +84,7 @@ def limp() -> None:
 
 # Fuções para uma *NOVA VENDA* --------------------------------------------------------------------------------------
 
-def armazena_dados(valor:int, tickets: int, index_pagamento: int, index_cliente: int, base_de_dados: dados) -> None:
+def armazena_venda(tip_cliente: tipoCliente, tip_pagamento: tip_pagamento, tickets: int, base_de_dados: vendas) -> None:
     '''Recebe o 'valor' de uma venda, quantidade de 'tickets', tipo de pagamento no 'index_pagamento', 
     tipo de cliente no 'index_cliente'. Esses dados são utilizados para armazenar dentro de base de dados que é
     inserida pela input 'base_de_dados' do tipo dados. E são armazenadas de acordo com alguns critérios: 
@@ -116,28 +100,10 @@ def armazena_dados(valor:int, tickets: int, index_pagamento: int, index_cliente:
 
     '''
     
-    base_de_dados.total_valorVendido += valor
-    base_de_dados.total_ticket += tickets
+    veda_dados: vendas = vendas(tip_cliente, tip_pagamento, tickets)
+    base_de_dados.apend(venda_dados)
 
-    if index_pagamento == 0:
-        base_de_dados.total_pagamentos.pix += valor
-    elif index_pagamento == 1:
-        base_de_dados.total_pagamentos.car += valor
-    else: 
-        base_de_dados.total_pagamentos.din += valor
-
-    if index_cliente == 0:
-        base_de_dados.total_cliente.alu += tickets
-    elif index_cliente == 1:
-        base_de_dados.total_cliente.ser += tickets
-    elif index_cliente == 2:
-        base_de_dados.total_cliente.se3 += tickets
-    elif index_cliente == 3:
-        base_de_dados.total_cliente.doc += tickets
-    else:
-        base_de_dados.total_cliente.ext += tickets
-
-def valor_ticket(index_cliente: int) ->int:
+def valor_ticket(tip_cliente: int) ->int:
     '''Essa função retorna o valor do ticket em função da entrada 'index_cliente'. Clientes do tipo Aluno e Servidor que
     um salário menor ou igual a 3 mil reais, são representados pelo index 0 e 1 respectivamente e retornam como valor de
     ticket 5 reais. Clientes do tipo Servidor que ganha mais de 3 mil de salário e Docentes, são representados pelo index
@@ -154,59 +120,66 @@ def valor_ticket(index_cliente: int) ->int:
     '''
 
     valor_ticket: int = 0
-    if index_cliente == 0 or index_cliente == 1:
+    if tip_cliente == tipoCliente.ALU or tip_cliente == tipoCliente.SER:
         valor_ticket = 5
-    elif index_cliente == 2 or index_cliente == 3:
+    elif tip_cliente == tipoCliente.SE3 or tip_cliente == tipo.Cliente.DOC:
         valor_ticket = 10
     else: 
         valor_ticket = 19
     
     return valor_ticket
 
+def indexTOcliente(index_cliente: int) -> tipoCliente:
+    '''Recebe um número que é referente a um tipo de cliente e associa esse número a `tipoCliente` correspondente.'''
+
+        res: tipoCliente
+        if index_cliente == 0:
+            res = tipoCliente.ALU
+        elif index_cliente == 1:
+            res = tipoCliente.SER
+        elif inde_cliente == 2: 
+            res = tipoCliente.SE3
+        elif index_cliente == 3: 
+            res = tipoCliente.DOC
+        else: 
+            res = tipoCliente.EXT
+        return res
+
+def indexTOpagamento(index_pagamento: int) -> tipoPagamento:
+    '''Recebe um número que é referente a uma forma de pagamento e associa esse número a `tipoPagamento` correspondente.'''
+
+    res: tipoPagamento
+    if index_pagamento == 0:
+        res = tipoPagamento.PIX
+    elif index_pagamento == 1:
+        res = tipoPagamento.CAR
+    else: 
+        res = tipoPagamento.DIN
+    return res
+
 def nova_venda(base_de_dados: dados) -> str:
     '''Essa função executa todo o processo de uma nova venda, ela recebe por meio de input do teclado qual o tipo de 
     cliente, quantos tickets da venda e qual a forma de pagamento. E ao final da operação, chama uma função que armazena
     os dados da venda em 'base_de_dados'. Caso execute o DocTest para esse função, forneça 0 para primeira entrada, 10 
     para a segunda e 1 para a terceira e última entrada.
-
-    >>> meusClientes: quantidadeCliente = quantidadeCliente(12,4,2,4,1)
-    >>> pagamentos: quantidadePagamento = quantidadePagamento(23,72,19)
-    >>> meusDados: dados = dados(pagamentos, meusClientes, 23, 114)
-    >>> nova_venda(meusDados)
-    NOVA VENDA
-    <BLANKLINE>
-    |            TIPOS DE CLIENTES            |
-    |ALUNO                                -> 0|
-    |SERVIDOR com salário <= 3 mil reais  -> 1|
-    |SERVIDOR com salário > 3 mil reais   -> 2|
-    |DOCENTE                              -> 3|
-    |EXTERNO                              -> 4|
-    <BLANKLINE>
-    Qual é o tipo do cliente? (0,1,2,3 ou 4): Quantos tickets o cliente deseja comprar? 
-    10 tickets no valor de R$5. 
-    Valor à pagar: R$50.
-    <BLANKLINE>
-    |  PAGAMENTO  |
-    |PIX      -> 0|
-    |CARTÃO   -> 1|
-    |DINHEIRO -> 2|
-    <BLANKLINE>
-    Qual seria a forma de pagamento? (0,1 ou 2): 
     '''
 
     print('NOVA VENDA')
     imprimeTabelas(0)
-    tip_cliente: int = int(input('Qual é o tipo do cliente? (0,1,2,3 ou 4): '))
-    tickets: int = int(input('Quantos tickets o cliente deseja comprar? '))
-    sub_total: int = valor_ticket(tip_cliente)*tickets
+    index_cliente: int = int(input('Qual é o tipo do cliente? (0,1,2,3 ou 4): '))
 
+    tip_cliente: tipoCliente = indexTOcliente(index_cliente)
+    tickets: int = int(input('Quantos tickets o cliente deseja comprar? '))
+
+    sub_total: int = valor_ticket(tip_cliente)*tickets
 
     print(f'\n{tickets} tickets no valor de R${valor_ticket(tip_cliente)}. \nValor à pagar: R${sub_total}.')
     imprimeTabelas(1)
-    tip_pagamento: int = int(input('Qual seria a forma de pagamento? (0,1 ou 2): '))
 
+    index_pagamento: int = int(input('Qual seria a forma de pagamento? (0,1 ou 2): '))
+    tip_pagamento: tipoPagamento = indexTOpagamento(index_pagamento)
 
-    armazena_dados(sub_total, tickets, tip_pagamento, tip_cliente, base_de_dados)
+    armazena_venda(sub_total, tickets, tip_pagamento, tip_cliente, base_de_dados)
 
 
 # Funções para gerar *RELATÓRIO* ------------------------------------------------------------------------------------
@@ -391,7 +364,7 @@ def relatorio(base_de_dados: dados) -> None:
 
 def main():
     limp()
-    dadosRu: dados = dados()
+    dadosRU: list = []
     print('Bem vindo ao sistema de controle de vendas do restaurante univesitário da UEM!')
 
     while True:
@@ -400,11 +373,11 @@ def main():
 
         if modo == 'V':
             limp()
-            nova_venda(dadosRu)
+            nova_venda(dadosRU)
         elif modo == 'R':
             limp()
             if dadosRu.total_valorVendido != 0 and dadosRu.total_ticket != 0:
-                relatorio(dadosRu)
+                relatorio(dadosRU)
         elif modo == 'S':
             break
         limp()
